@@ -8,16 +8,20 @@
 
     public class JsonSyslogMessage
     {
-        private static readonly Regex DateStampRegex = new Regex(@"\w{3} \w{3}.{4}\d{2}:\d{2}:\d{2}.\d{3}");
+        private static readonly Regex _DateStampRegex = new Regex(@"\w{3} \w{3}.{4}\d{2}:\d{2}:\d{2}.\d{3}");
+        // See https://tools.ietf.org/html/rfc5424#section-6 
+        private static readonly string _rfc5424Regex = @"\<(?<PRI>\d+)\>(?<VERSION>\d{1,2}) (?<TIMESTAMP>(?:\b\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}[\+,\-]\d\d:\d\d\b|-)) (?<HOSTNAME>(?:[\x21-\x7E]{1,255}|-)){1,255} (?<APPNAME>(?:[\x21-\x7E]{1,48}|-)) (?<PROCID>[\x21-\x7E]{1,128})? (?<MSGID>(?:[\x21-\x7E]{1,32}|-)) (?<SD>(?:\[(?<SDID>[\x21\x23-\x3C\x3E-\x5A\x5C-\x7E]{1,32})(?: (?<SDPARAM>(?<PARAMNAME>[\x21\x23-\x3C\x3E-\x5A\x5C-\x7E]{1,32})=""(?< PARAMVALUE >[^ ""]*)"")) *\]| -)) (?<MSG>.*)"")";
 
         public JsonSyslogMessage(string rawMessage)
         {
-            this.RawMessage = rawMessage;
+            RawMessage = rawMessage;
+
+            ParseRFC5424();
 
             var splitLine = rawMessage.Split(' ');
             if (splitLine.Length < 4)
             {
-                this.Invalid = true;
+                Invalid = true;
                 return;
             }
 
@@ -27,24 +31,42 @@
                 var facility = priority / 8;
                 var severity = priority % 8;
 
-                this.Facility = ((Facility)facility).ToString();
-                this.Level = ((Severity)severity).ToString();
+                Facility = ((Facility)facility).ToString();
+                Level = ((Severity)severity).ToString();
             }
             catch (Exception)
             {
                 Logger.Warning("Could not parse priority. [{0}]", rawMessage);
-                this.Invalid = true;
+                Invalid = true;
                 return;
             }
 
             DateTime notUsed;
-            this.Invalid = !DateTime.TryParse(splitLine[1], out notUsed);
+            Invalid = !DateTime.TryParse(splitLine[1], out notUsed);
 
-            this.Timestamp = splitLine[1];
-            this.Hostname = splitLine[2].Trim();
-            this.ApplicationName = splitLine[3].Trim();
-            this.Message = DateStampRegex.Replace(string.Join(" ", splitLine.Skip(4)).Trim(), string.Empty).Trim();
+            Timestamp = splitLine[1];
+            Hostname = splitLine[2].Trim();
+            ApplicationName = splitLine[3].Trim();
+            Message = _DateStampRegex.Replace(string.Join(" ", splitLine.Skip(4)).Trim(), string.Empty).Trim();
         }
+
+        private bool ParseRFC5424()
+        {
+            var regex = new Regex(_rfc5424Regex);
+            var match = Regex.Match(RawMessage, _rfc5424Regex, RegexOptions.IgnoreCase);
+
+            //check for rfc5424, return to original match if no match
+            if (!match.Success)
+                return false;
+
+            Timestamp = match.Groups["TIMESTAMP"]?.Value;
+            Hostname = match.Groups["HOSTNAME"]?.Value;
+            ApplicationName = match.Groups["APPNAME"]?.Value;
+            Message = match.Groups["MSG"]?.Value;
+
+            return true;
+        }
+
 
         public bool Invalid { get; private set; }
 
@@ -66,10 +88,10 @@
         {
             return JsonConvert.SerializeObject(new SeqEventMessage()
             {
-                Level = this.Level,
-                Timestamp = this.Timestamp,
+                Level = Level,
+                Timestamp = Timestamp,
                 MessageTemplate = Configuration.MessageTemplate,
-                Properties = new { this.Facility, this.Hostname, this.ApplicationName, this.Message }
+                Properties = new { Facility, Hostname, ApplicationName, Message }
             });
         }
     }
