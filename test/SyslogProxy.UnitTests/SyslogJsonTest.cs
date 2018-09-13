@@ -24,7 +24,6 @@ namespace SyslogProxy.UnitTests
         public void CanParseRFC5424WithStructuredData()
         {
             JsonSyslogMessage syslog = new JsonSyslogMessage(@"164 <14>1 2018-09-07T16:15:38.477531+00:00 NCO.MOM.mom fea3e98a-f9da-4705-91f0-80ef34b38b31 [0] - [gauge@47450 name=""disk_quota"" value=""1.073741824e+09"" unit=""bytes""] ");
-            //JsonSyslogMessage thing = new JsonSyslogMessage(@"[gauge@47450 name=""disk_quota"" test=""testing""]");
 
             syslog.Invalid.Should().BeFalse();
             syslog.Timestamp.Should().Be("2018-09-07T16:15:38.477531+00:00");
@@ -43,7 +42,6 @@ namespace SyslogProxy.UnitTests
         public void CanParseRFC5424WithoutStructuredData()
         {
             JsonSyslogMessage syslog = new JsonSyslogMessage(@"164 <14>1 2018-09-13T17:02:34.936791+00:00 hostname app-name [APP/PROC/WEB/0] - - message is here");
-            //JsonSyslogMessage thing = new JsonSyslogMessage(@"[gauge@47450 name=""disk_quota"" test=""testing""]");
 
             syslog.Invalid.Should().BeFalse();
             syslog.Timestamp.Should().Be("2018-09-13T17:02:34.936791+00:00");
@@ -53,8 +51,13 @@ namespace SyslogProxy.UnitTests
             syslog.ProcID.Should().Be("[APP/PROC/WEB/0]");
             syslog.Message.Should().Be("message is here");
             syslog.MessageID.Should().Be("-");
-
         }
 
+        [Fact]
+        public void CanOverrideToStringProperly()
+        {
+            JsonSyslogMessage syslog = new JsonSyslogMessage(@"164 <14>1 2018-09-07T16:15:38.477531+00:00 NCO.MOM.mom fea3e98a-f9da-4705-91f0-80ef34b38b31 [0] - [gauge@47450 name=""disk_quota"" value=""1.073741824e+09"" unit=""bytes""] ");
+            syslog.ToString().Should().Be(@"{""Timestamp"":""2018-09-07T16:15:38.477531+00:00"",""Level"":null,""Properties"":{""Facility"":null,""Hostname"":""NCO.MOM.mom"",""ApplicationName"":""fea3e98a-f9da-4705-91f0-80ef34b38b31"",""Message"":"""",""StructuredDataElements"":{""name"":""disk_quota"",""value"":""1.073741824e+09"",""unit"":""bytes""}},""MessageTemplate"":null}");
+        }
     }
 }

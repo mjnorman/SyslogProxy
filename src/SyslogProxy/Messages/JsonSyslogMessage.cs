@@ -130,12 +130,13 @@
 
         public override string ToString()
         {
+
             return JsonConvert.SerializeObject(new SeqEventMessage()
             {
                 Level = Level,
                 Timestamp = Timestamp,
                 MessageTemplate = Configuration.MessageTemplate,
-                Properties = new { Facility, Hostname, ApplicationName, Message }
+                Properties = new { Facility, Hostname, ApplicationName, Message, StructuredDataElements }
             });
         }
     }
