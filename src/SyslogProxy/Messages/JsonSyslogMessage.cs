@@ -6,6 +6,7 @@
     using System.Text.RegularExpressions;
 
     using Newtonsoft.Json;
+    using Serilog.Events;
 
     public class JsonSyslogMessage
     {
@@ -91,6 +92,17 @@
             return true;
         }
 
+        public object[] GetSEQProperties()
+        {
+            var properties = new List<object>();
+            properties.Add(Hostname);
+            properties.Add(ApplicationName);
+            properties.Add(StructuredDataElements);
+            properties.Add(Message);
+      
+            return properties.ToArray();
+        }
+
         private void ParseStructuredData(string sd)
         {
             var sdmatches = Regex.Matches(sd, _sdpairRegex);
@@ -139,5 +151,6 @@
                 Properties = new { Facility, Hostname, ApplicationName, Message, StructuredDataElements }
             });
         }
+
     }
 }

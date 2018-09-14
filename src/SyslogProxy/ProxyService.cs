@@ -1,7 +1,7 @@
 namespace SyslogProxy
 {
     using System.Threading;
-
+    using Serilog;
     using SimpleServices;
 
     using SyslogProxy.Messages;
@@ -21,6 +21,7 @@ namespace SyslogProxy
 
         public void Stop()
         {
+            Log.CloseAndFlush();
             this.cancellationTokenSource.Cancel();
         }
     }
