@@ -21,6 +21,7 @@ namespace SyslogProxy
 
         public void Stop()
         {
+            Log.Information("SyslogProxy is Disconnecting...");
             Log.CloseAndFlush();
             this.cancellationTokenSource.Cancel();
         }
