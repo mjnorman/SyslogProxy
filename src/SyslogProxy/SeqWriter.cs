@@ -25,11 +25,8 @@ namespace SyslogProxy
 
         public async Task WriteToSeq(JsonSyslogMessage message, int delay = 0)
         {
-
             //LogEvent logEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("{Hostname}:{ApplicationName} {Message}", message.Hostname, message.ApplicationName, message.Message), message.Properties);
             Log.Information(Configuration.MessageTemplate, message.GetSEQProperties());
-            Log.Write(LogEventLevel.Information, Configuration.MessageTemplate, message.GetSEQProperties());
-
         }
 
         //public async Task WriteToSeq(JsonSyslogMessage message, int delay = 0)

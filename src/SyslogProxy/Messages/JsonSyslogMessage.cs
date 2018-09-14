@@ -19,7 +19,7 @@
         public JsonSyslogMessage(string rawMessage)
         {
             //init private var
-            StructuredDataElements = new Dictionary<string, string>();
+            StructuredDataElements = new Dictionary<string, object>();
 
             RawMessage = rawMessage;
 
@@ -110,7 +110,20 @@
             {
                 foreach (Match sdmatch in sdmatches)
                 {
-                    StructuredDataElements.Add(sdmatch.Groups["PARAMNAME"].Value, sdmatch.Groups["PARAMVALUE"].Value);
+                    //test for integers and floats in the data to pass to SEQ for readability
+                    if (Int32.TryParse(sdmatch.Groups["PARAMVALUE"].Value, out int result))
+                    {
+                        StructuredDataElements.Add(sdmatch.Groups["PARAMNAME"].Value, result);
+                    }
+                    else if (float.TryParse(sdmatch.Groups["PARAMVALUE"].Value, out float fresult))
+                    {
+                        StructuredDataElements.Add(sdmatch.Groups["PARAMNAME"].Value, fresult);
+                    }
+                    else
+                    {
+                        StructuredDataElements.Add(sdmatch.Groups["PARAMNAME"].Value, sdmatch.Groups["PARAMVALUE"].Value);
+                    }
+                    
                 }
             }
 
@@ -138,7 +151,7 @@
 
         public string ProcID { get; private set; }
 
-        public Dictionary<string, string> StructuredDataElements { get; set; }
+        public Dictionary<string, object> StructuredDataElements { get; set; }
 
         public override string ToString()
         {
@@ -148,7 +161,7 @@
                 Level = Level,
                 Timestamp = Timestamp,
                 MessageTemplate = Configuration.MessageTemplate,
-                Properties = new { Facility, Hostname, ApplicationName, Message, StructuredDataElements }
+                Properties = new { Facility, Hostname, ApplicationName, Message, StructuredDataElements },
             });
         }
 
