@@ -18,7 +18,9 @@ namespace SyslogProxy
         public SeqWriter()
         {
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Seq(Configuration.SeqServer.ToString())
+                .WriteTo.Seq(
+                   serverUrl: Configuration.SeqServer.ToString(),
+                   apiKey: Configuration.APIKey.ToString())
                 .CreateLogger();
             Log.Information("SyslogProxy connected");
         }

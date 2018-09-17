@@ -38,6 +38,14 @@
             }
         }
 
+        public static string APIKey
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["APIKey"];
+            }
+        }
+
         public static void Validate()
         {
             if (SeqServer == null)
